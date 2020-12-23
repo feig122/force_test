@@ -75,6 +75,7 @@ global CorY1;
 %global Point_P;
 global L;
 global dX dY gaitCount yaw;
+global lastdX lastdY
 
 sys=zeros(36,1);
 deltaYaw = zeros(6,1);
@@ -116,9 +117,12 @@ elseif t>1
                 gaitCount = gaitCount +1; 
             end
             
-            yaw = gaitCount * Va; 
+            %--------FEI
+            lastdX = zeros(6,1);
+            lastdY = zeros(6,1);
+            yaw = gaitCount*2 * Va; 
             dX = 0.1*cos(yaw);
-            dY = -0.1*sin(yaw);
+            dY = 0.1*sin(yaw);
             
             switch WalkingState
                 case RM_F %1
@@ -159,9 +163,6 @@ elseif t>1
                     CorX1(RH)=-sqrt(3)*L/2;
                     CorY1(RH)=-L/2;
             end
-%             if WalkingState==LM_F||WalkingState==RM_F  %1或2
-%                 Va=Vagive;
-%             end
             %为什么角速度会改变?
             
             %选择新的落地点(以身体中心为原点，在身体坐标系下计算的增量PE)
@@ -172,36 +173,32 @@ elseif t>1
                     StartPZ(LegPosition)=Point(LegPosition,3);  
                     %[Ox,Oy,R,PE]=CircleCal(1.5*Time_CentreMove,Vx,Vy,Va,0+0.5,0+0.5);
                     [Ox,Oy,R,PE]=CircleCal(Time_CentreMove,Vx,Vy,Va,0+sqrt(3)*L/2,0+L/2);
-                    [Ox,Oy,R,PE1]=CircleCal(Time_CentreMove,Vx1,Vy1,Va1,0+sqrt(3)*L/2,0+L/2);
-                    EndPX(LegPosition)=PE(1)+dX;%+PE1(1); 
-                    EndPY(LegPosition)=PE(2)+dY;%+PE1(2);
+                    EndPX(LegPosition)=PE(1)+dX;%----FEI
+                    EndPY(LegPosition)=PE(2)+dY;%----FEI
                 elseif LegPosition==LH  
                     StartPX(LegPosition)=Point(LegPosition,1)-sqrt(3)*L/2;
                     StartPY(LegPosition)=Point(LegPosition,2)+L/2;
                     StartPZ(LegPosition)=Point(LegPosition,3);                   
                     %[Ox,Oy,R,PE]=CircleCal(0.5*Time_CentreMove,Vx,Vy,Va,0-0.5,0+0.5);
                     [Ox,Oy,R,PE]=CircleCal(Time_CentreMove,Vx,Vy,Va,0-sqrt(3)*L/2,0+L/2);
-                    [Ox,Oy,R,PE1]=CircleCal(Time_CentreMove,Vx1,Vy1,Va1,0-sqrt(3)*L/2,0+L/2);
-                    EndPX(LegPosition)=PE(1)+dX;%+PE1(1);
-                    EndPY(LegPosition)=PE(2)+dY;%+PE1(2);       
+                    EndPX(LegPosition)=PE(1)+dX;%----FEI
+                    EndPY(LegPosition)=PE(2)+dY;%----FEI  
                 elseif LegPosition==RF  
                     StartPX(LegPosition)=Point(LegPosition,1)+sqrt(3)*L/2;
                     StartPY(LegPosition)=Point(LegPosition,2)-L/2;
                     StartPZ(LegPosition)=Point(LegPosition,3);                     
                     %[Ox,Oy,R,PE]=CircleCal(1.5*Time_CentreMove,Vx,Vy,Va,0+0.5,0-0.5);
                     [Ox,Oy,R,PE]=CircleCal(Time_CentreMove,Vx,Vy,Va,0+sqrt(3)*L/2,0-L/2);
-                    [Ox,Oy,R,PE1]=CircleCal(Time_CentreMove,Vx1,Vy1,Va1,0+sqrt(3)*L/2,0-L/2);
-                    EndPX(LegPosition)=PE(1)+dX;%+PE1(1);
-                    EndPY(LegPosition)=PE(2)+dY;%+PE1(2);      
+                    EndPX(LegPosition)=PE(1)+dX;%----FEI
+                    EndPY(LegPosition)=PE(2)+dY;%----FEI  
                 elseif LegPosition==RH  
                     StartPX(LegPosition)=Point(LegPosition,1)-sqrt(3)*L/2;
                     StartPY(LegPosition)=Point(LegPosition,2)-L/2;
                     StartPZ(LegPosition)=Point(LegPosition,3);                    
                     %[Ox,Oy,R,PE]=CircleCal(0.5*Time_CentreMove,Vx,Vy,Va,0-0.5,0-0.5);
                     [Ox,Oy,R,PE]=CircleCal(Time_CentreMove,Vx,Vy,Va,0-sqrt(3)*L/2,0-L/2);
-                    [Ox,Oy,R,PE1]=CircleCal(Time_CentreMove,Vx1,Vy1,Va1,0-sqrt(3)*L/2,0-L/2);
-                    EndPX(LegPosition)=PE(1)+dX;%+PE1(1);
-                    EndPY(LegPosition)=PE(2)+dY;%+PE1(2);
+                    EndPX(LegPosition)=PE(1)+dX;%----FEI
+                    EndPY(LegPosition)=PE(2)+dY;%----FEI
                     deltaYaw(LegPosition) = atan2(PE(1),PE(2));
                 elseif LegPosition==RM  
                     StartPX(LegPosition)=Point(LegPosition,1);
@@ -209,36 +206,32 @@ elseif t>1
                     StartPZ(LegPosition)=Point(LegPosition,3);                    
                     %[Ox,Oy,R,PE]=CircleCal(0.5*Time_CentreMove,Vx,Vy,Va,0-0.5,0-0.5);
                     [Ox,Oy,R,PE]=CircleCal(Time_CentreMove,Vx,Vy,Va,0,0-L);
-                    [Ox,Oy,R,PE1]=CircleCal(Time_CentreMove,Vx1,Vy1,Va1,0,0-L);
-                    EndPX(LegPosition)=PE(1)+dX;%+PE1(1);
-                    EndPY(LegPosition)=PE(2)+dY;%+PE1(2);
+                    EndPX(LegPosition)=PE(1)+dX;%----FEI
+                    EndPY(LegPosition)=PE(2)+dY;%----FEI
                 elseif LegPosition==LM  
                     StartPX(LegPosition)=Point(LegPosition,1);
                     StartPY(LegPosition)=Point(LegPosition,2)+L;
                     StartPZ(LegPosition)=Point(LegPosition,3);                    
                     %[Ox,Oy,R,PE]=CircleCal(0.5*Time_CentreMove,Vx,Vy,Va,0-0.5,0-0.5);
                     [Ox,Oy,R,PE]=CircleCal(Time_CentreMove,Vx,Vy,Va,0,0+L);
-                    [Ox,Oy,R,PE1]=CircleCal(Time_CentreMove,Vx1,Vy1,Va1,0,0+L);
-                    EndPX(LegPosition)=PE(1)+dX;%+PE1(1);
-                    EndPY(LegPosition)=PE(2)+dY;%+PE1(2);
+                    EndPX(LegPosition)=PE(1)+dX;%----FEI
+                    EndPY(LegPosition)=PE(2)+dY;%----FEI
                 end
             end                
     end
         StateTime=t-StateInitTime;  
-        
-%         if WalkingState==RM_F||WalkingState==LM_F %||WalkingState==LH_TD||WalkingState==LF_TD||WalkingState==RM_TD||WalkingState==LM_TD
             switch WalkingState
                 case RM_F  
                     for LegID=1:6    %身体重心偏移
                         if LegID==LM||LegID==RF||LegID==RH 
+                            Transit_k=0.5-0.5*cos(pi*StateTime/Time_CentreMove);
                             [Ox,Oy,R,PE]=CircleCal(StateTime-StateTime_Last,Vx,Vy,Va,CorX(LegID),CorY(LegID));
-                            [Ox,Oy,R,PE1]=CircleCal(StateTime-StateTime_Last,Vx1,Vy1,Va1,CorX1(LegID),CorY1(LegID));
-                            Incre_X(LegID)=(PE(1)-CorX(LegID));%+(PE1(1)-CorX1(LegID));
-                            Incre_Y(LegID)=(PE(2)-CorY(LegID));%+(PE1(2)-CorY1(LegID));
+                            Incre_X(LegID)=PE(1)-CorX(LegID)+(dX*Transit_k-lastdX(LegID));%+(PE1(1)-CorX1(LegID));
+                            Incre_Y(LegID)=PE(2)-CorY(LegID)+(dY*Transit_k-lastdY(LegID));%+(PE1(2)-CorY1(LegID));
+                            lastdX(LegID) = dX*Transit_k;
+                            lastdY(LegID) = dY*Transit_k;
                             CorX(LegID)=PE(1);%+PE1(1);
                             CorY(LegID)=PE(2);%+PE1(2);
-                            CorX1(LegID)=PE1(1);%+PE1(1);
-                            CorY1(LegID)=PE1(2);%+PE1(2);
                         end
                     end 
                     Point(LM,1)=Point(LM,1)-Incre_X(LM);
@@ -250,14 +243,14 @@ elseif t>1
                 case LM_F
                     for LegID=1:6
                         if LegID==RM||LegID==LF||LegID==LH 
+                            Transit_k=0.5-0.5*cos(pi*StateTime/Time_CentreMove);
                             [Ox,Oy,R,PE]=CircleCal(StateTime-StateTime_Last,Vx,Vy,Va,CorX(LegID),CorY(LegID));
-                            [Ox,Oy,R,PE1]=CircleCal(StateTime-StateTime_Last,Vx1,Vy1,Va1,CorX1(LegID),CorY1(LegID));
-                            Incre_X(LegID)=(PE(1)-dX-CorX(LegID));%+(PE1(1)-CorX1(LegID));
-                            Incre_Y(LegID)=(PE(2)-dY-CorY(LegID));%+(PE1(2)-CorY1(LegID)); 
+                            Incre_X(LegID)=PE(1)-CorX(LegID)+(dX*Transit_k-lastdX(LegID));%+(PE1(1)-CorX1(LegID));
+                            Incre_Y(LegID)=PE(2)-CorY(LegID)+(dY*Transit_k-lastdY(LegID));%+(PE1(2)-CorY1(LegID)); 
+                            lastdX(LegID) = dX*Transit_k;
+                            lastdY(LegID) = dY*Transit_k;
                             CorX(LegID)=PE(1);%+PE1(1);  
                             CorY(LegID)=PE(2);%+PE1(2);
-                            CorX1(LegID)=PE1(1);%+PE1(1);  
-                            CorY1(LegID)=PE1(2);%+PE1(2);
                         end
                     end
                     Point(RM,1)=Point(RM,1)-Incre_X(RM);
@@ -267,14 +260,6 @@ elseif t>1
                     Point(LH,1)=Point(LH,1)-Incre_X(LH);
                     Point(LH,2)=Point(LH,2)-Incre_Y(LH);
             end
-%             for LegID=1:6
-%                 Point(LegID,1)=Point(LegID,1)-Incre_X(LegID);
-%                 Point(LegID,2)=Point(LegID,2)-Incre_Y(LegID);
-%             end     
-%             if StateTime>=Time_CentreMove  %支撑相时间约束
-%                 StateTriger=1;
-%             end
-%         else
             switch WalkingState    %摆动相轨迹（足端坐标系）
                 case RM_F
                     Point(RM,1)=Transit(StateTime,Time_Flight,StartPX(RM),EndPX(RM));
@@ -329,16 +314,16 @@ end
     sys((6-1)*6+3)=Point(LF,3); 
 
 for i=1:6   %旋转自由度均为0
-    sys((i-1)*6+4)=dX;
-    sys((i-1)*6+5)=dY;
+    sys((i-1)*6+4)=0;
+    sys((i-1)*6+5)=0;
     sys((i-1)*6+6)=0;   
 end
 
 time_pre=t;  %持续时间？？
 
-% for i=1:1:6
-%     for j=1:1:6
-%      Point_P(i,j)=sys((i-1)*6+j);
-%     end
-% end
+for i=1:1:6
+    for j=1:1:6
+     Point_P(i,j)=sys((i-1)*6+j);
+    end
+end
 
